@@ -52,7 +52,7 @@ total_steps = (start_epoch-1) * dataset_size + epoch_iter
 display_delta = total_steps % opt.display_freq
 print_delta = total_steps % opt.print_freq
 save_delta = total_steps % opt.save_latest_freq
-repeated_data = dataset[0]
+repeated_data = None
 for epoch in range(start_epoch, opt.niter + opt.niter_decay + 1):
     epoch_start_time = time.time()
     if epoch != start_epoch:
@@ -60,6 +60,8 @@ for epoch in range(start_epoch, opt.niter + opt.niter_decay + 1):
 
     
     for i, data in enumerate(dataset, start=epoch_iter):
+        if repeated_data is None:
+            repeated_data = data.copy()
         if total_steps % opt.print_freq == print_delta:
             iter_start_time = time.time()
         total_steps += opt.batchSize
