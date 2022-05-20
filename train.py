@@ -52,11 +52,13 @@ total_steps = (start_epoch-1) * dataset_size + epoch_iter
 display_delta = total_steps % opt.display_freq
 print_delta = total_steps % opt.print_freq
 save_delta = total_steps % opt.save_latest_freq
-
+repeated_data = dataset[0]
 for epoch in range(start_epoch, opt.niter + opt.niter_decay + 1):
     epoch_start_time = time.time()
     if epoch != start_epoch:
         epoch_iter = epoch_iter % dataset_size
+
+    
     for i, data in enumerate(dataset, start=epoch_iter):
         if total_steps % opt.print_freq == print_delta:
             iter_start_time = time.time()
@@ -109,8 +111,15 @@ for epoch in range(start_epoch, opt.niter + opt.niter_decay + 1):
             visuals = OrderedDict([('input_label', util.tensor2label(data['label'][0], opt.label_nc)),
                                    ('synthesized_image', util.tensor2im(generated.data[0])),
                                    ('real_image', util.tensor2im(data['image'][0]))])
+            ############## Forward Pass ######################
+                                  
             visualizer.display_current_results(visuals, epoch, total_steps)
-
+            losses, generated = model(Variable(repeated_data['label']), Variable(repeated_data['inst']), 
+                Variable(repeated_data['image']), Variable(repeated_data['feat']), infer=save_fake)             
+            visuals2 = OrderedDict([('input_label_const', util.tensor2label(repeated_data['label'][0], opt.label_nc)),
+                                   ('synthesized_image_const', util.tensor2im(generated.data[0])),
+                                   ('real_image_const', util.tensor2im(repeated_data['image'][0]))])
+            visualizer.display_current_results(visuals2, epoch, total_steps)
         ### save latest model
         if total_steps % opt.save_latest_freq == save_delta:
             print('saving the latest model (epoch %d, total_steps %d)' % (epoch, total_steps))
